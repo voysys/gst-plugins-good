@@ -428,7 +428,7 @@ gst_flv_mux_video_pad_setcaps (GstFlvMuxPad * pad, GstCaps * caps)
   } else if (strcmp (gst_structure_get_name (s), "video/x-h264") == 0) {
     pad->codec = 7;
   } else if (strcmp (gst_structure_get_name (s), "video/x-h265") == 0) {
-    pad->codec = 8;
+    pad->codec = 12;
   } else {
     ret = FALSE;
   }
