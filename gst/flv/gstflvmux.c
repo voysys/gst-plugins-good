@@ -72,7 +72,8 @@ static GstStaticPadTemplate videosink_templ = GST_STATIC_PAD_TEMPLATE ("video",
     GST_STATIC_CAPS ("video/x-flash-video; "
         "video/x-flash-screen; "
         "video/x-vp6-flash; " "video/x-vp6-alpha; "
-        "video/x-h264, stream-format=avc;")
+        "video/x-h264, stream-format=avc; "
+        "video/x-h265, stream-format=byte-stream; ")
     );
 
 static GstStaticPadTemplate audiosink_templ = GST_STATIC_PAD_TEMPLATE ("audio",
@@ -395,7 +396,7 @@ gst_flv_mux_video_pad_setcaps (GstFlvMuxPad * pad, GstCaps * caps)
   GstFlvMux *mux = GST_FLV_MUX (gst_pad_get_parent (pad));
   gboolean ret = TRUE;
   GstStructure *s;
-
+  
   s = gst_caps_get_structure (caps, 0);
 
   if (strcmp (gst_structure_get_name (s), "video/x-flash-video") == 0) {
@@ -408,6 +409,8 @@ gst_flv_mux_video_pad_setcaps (GstFlvMuxPad * pad, GstCaps * caps)
     pad->codec = 5;
   } else if (strcmp (gst_structure_get_name (s), "video/x-h264") == 0) {
     pad->codec = 7;
+  } else if (strcmp (gst_structure_get_name (s), "video/x-h265") == 0) {
+    pad->codec = 12; // 0xc
   } else {
     ret = FALSE;
   }
