@@ -82,7 +82,8 @@ static GstStaticPadTemplate video_src_template =
     GST_STATIC_CAPS ("video/x-flash-video, flvversion=(int) 1; "
         "video/x-flash-screen; "
         "video/x-vp6-flash; " "video/x-vp6-alpha; "
-        "video/x-h264, stream-format=avc;")
+        "video/x-h264, stream-format=avc;"
+        "video/x-h265, stream-format=byte-stream; ")
     );
 
 GST_DEBUG_CATEGORY_STATIC (flvdemux_debug);
@@ -1366,6 +1367,16 @@ gst_flv_demux_video_negotiate (GstFlvDemux * demux, guint32 codec_tag)
       caps =
           gst_caps_new_simple ("video/mpeg", "mpegversion", G_TYPE_INT, 4,
           "systemstream", G_TYPE_BOOLEAN, FALSE, NULL);
+      break;
+    case 12:
+      if (!demux->video_codec_data) {
+        GST_DEBUG_OBJECT (demux, "don't have h265 codec data yet");
+        ret = TRUE;
+        goto done;
+      }
+      caps =
+          gst_caps_new_simple ("video/x-h265", "stream-format", G_TYPE_STRING,
+          "byte-stream", NULL);
       break;
     default:
       GST_WARNING_OBJECT (demux, "unsupported video codec tag %u", codec_tag);
