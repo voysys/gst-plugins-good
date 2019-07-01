@@ -1205,7 +1205,7 @@ gst_flv_mux_buffer_to_tag_internal (GstFlvMux * mux, GstBuffer * buffer,
   size = 11;
   if (mux->video_pad == pad) {
     size += 1;
-    if (pad->codec == 7)
+    if (pad->codec == 7 || pad->codec == 12)
       size += 4 + bsize;
     else
       size += bsize;
@@ -1241,16 +1241,16 @@ gst_flv_mux_buffer_to_tag_internal (GstFlvMux * mux, GstBuffer * buffer,
 
     data[11] |= pad->codec & 0x0f;
 
-    if (pad->codec == 7) {
+    if (pad->codec == 7 || pad->codec == 12) {
       if (is_codec_data) {
         data[12] = 0;
         GST_WRITE_UINT24_BE (data + 13, 0);
       } else if (bsize == 0) {
-        /* AVC end of sequence */
+        /* AVC/HEVC end of sequence */
         data[12] = 2;
         GST_WRITE_UINT24_BE (data + 13, 0);
       } else {
-        /* ACV NALU */
+        /* AVC/HEVC NALU */
         data[12] = 1;
         GST_WRITE_UINT24_BE (data + 13, cts);
       }
@@ -1374,8 +1374,8 @@ gst_flv_mux_prepare_src_caps (GstFlvMux * mux, GstBuffer ** header_buf,
   for (l = GST_ELEMENT_CAST (mux)->sinkpads; l != NULL; l = l->next) {
     GstFlvMuxPad *pad = l->data;
 
-    /* Get H.264 and AAC codec data, if present */
-    if (pad && mux->video_pad == pad && pad->codec == 7) {
+    /* Get H.264/H.265 and AAC codec data, if present */
+    if (pad && mux->video_pad == pad && (pad->codec == 7 || pad->codec == 12)) {
       if (pad->codec_data == NULL)
         GST_WARNING_OBJECT (mux, "Codec data for video stream not found, "
             "output might not be playable");

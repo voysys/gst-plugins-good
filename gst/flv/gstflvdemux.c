@@ -1521,7 +1521,7 @@ gst_flv_demux_parse_tag_video (GstFlvDemux * demux, GstBuffer * buffer)
   codec_tag = flags & 0x0F;
   if (codec_tag == 4 || codec_tag == 5) {
     codec_data = 2;
-  } else if (codec_tag == 7) {
+  } else if (codec_tag == 7 || codec_tag == 12) {
     codec_data = 5;
 
     cts = GST_READ_UINT24_BE (data + 9);
@@ -1539,7 +1539,7 @@ gst_flv_demux_parse_tag_video (GstFlvDemux * demux, GstBuffer * buffer)
   GST_LOG_OBJECT (demux, "video tag with codec tag %u, keyframe (%d) "
       "(flags %02X)", codec_tag, keyframe, flags);
 
-  if (codec_tag == 7) {
+  if (codec_tag == 7 || codec_tag == 12) {
     guint8 avc_packet_type = GST_READ_UINT8 (data + 8);
 
     switch (avc_packet_type) {
@@ -1564,9 +1564,9 @@ gst_flv_demux_parse_tag_video (GstFlvDemux * demux, GstBuffer * buffer)
         goto beach;
       }
       case 1:
-        /* H.264 NALU packet */
+        /* H.264/H.265 NALU packet */
         if (!demux->video_codec_data) {
-          GST_ERROR_OBJECT (demux, "got H.264 video packet before codec data");
+          GST_ERROR_OBJECT (demux, "got H.264 or H.265 video packet before codec data");
           ret = GST_FLOW_OK;
           goto beach;
         }
