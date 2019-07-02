@@ -74,7 +74,7 @@ static GstStaticPadTemplate videosink_templ = GST_STATIC_PAD_TEMPLATE ("video",
         "video/x-flash-screen; "
         "video/x-vp6-flash; " "video/x-vp6-alpha; "
         "video/x-h264, stream-format=avc; "
-        "video/x-h265, stream-format=byte-stream; ")
+        "video/x-h265, stream-format=hvc1; ")
     );
 
 static GstStaticPadTemplate audiosink_templ = GST_STATIC_PAD_TEMPLATE ("audio",
@@ -1205,16 +1205,20 @@ gst_flv_mux_buffer_to_tag_internal (GstFlvMux * mux, GstBuffer * buffer,
   size = 11;
   if (mux->video_pad == pad) {
     size += 1;
-    if (pad->codec == 7 || pad->codec == 12)
+    if (pad->codec == 7 || pad->codec == 12) {
       size += 4 + bsize;
-    else
+    }
+    else {
       size += bsize;
+    }
   } else {
     size += 1;
-    if (pad->codec == 10)
+    if (pad->codec == 10) {
       size += 1 + bsize;
-    else
+    }
+    else {
       size += bsize;
+    }
   }
   size += 4;
 
@@ -1234,10 +1238,11 @@ gst_flv_mux_buffer_to_tag_internal (GstFlvMux * mux, GstBuffer * buffer,
   data[8] = data[9] = data[10] = 0;
 
   if (mux->video_pad == pad) {
-    if (buffer && GST_BUFFER_FLAG_IS_SET (buffer, GST_BUFFER_FLAG_DELTA_UNIT))
+    if (buffer && GST_BUFFER_FLAG_IS_SET (buffer, GST_BUFFER_FLAG_DELTA_UNIT)) {
       data[11] |= 2 << 4;
-    else
+    } else {
       data[11] |= 1 << 4;
+    }
 
     data[11] |= pad->codec & 0x0f;
 
@@ -1277,8 +1282,9 @@ gst_flv_mux_buffer_to_tag_internal (GstFlvMux * mux, GstBuffer * buffer,
     }
   }
 
-  if (buffer)
+  if (buffer) {
     gst_buffer_unmap (buffer, &map);
+  }
 
   GST_WRITE_UINT32_BE (data + size - 4, size - 4);
 
@@ -1308,8 +1314,9 @@ gst_flv_mux_buffer_to_tag_internal (GstFlvMux * mux, GstBuffer * buffer,
     /* mark the buffer if it's an audio buffer and there's also video being muxed
      * or it's a video interframe */
     if (mux->video_pad == pad &&
-        GST_BUFFER_FLAG_IS_SET (buffer, GST_BUFFER_FLAG_DELTA_UNIT))
-      GST_BUFFER_FLAG_SET (tag, GST_BUFFER_FLAG_DELTA_UNIT);
+        GST_BUFFER_FLAG_IS_SET (buffer, GST_BUFFER_FLAG_DELTA_UNIT)) {
+          GST_BUFFER_FLAG_SET (tag, GST_BUFFER_FLAG_DELTA_UNIT);
+        }
   } else {
     GST_BUFFER_FLAG_SET (tag, GST_BUFFER_FLAG_DELTA_UNIT);
     GST_BUFFER_OFFSET (tag) = GST_BUFFER_OFFSET_END (tag) =
