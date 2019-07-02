@@ -1225,42 +1225,59 @@ gst_flv_mux_buffer_to_tag_internal (GstFlvMux * mux, GstBuffer * buffer,
   _gst_buffer_new_and_alloc (size, &tag, &data);
   memset (data, 0, size);
 
+  /* TagType UI8 */
   data[0] = (mux->video_pad == pad) ? 9 : 8;
 
+  /* DataSize UI24 */
   data[1] = ((size - 11 - 4) >> 16) & 0xff;
   data[2] = ((size - 11 - 4) >> 8) & 0xff;
   data[3] = ((size - 11 - 4) >> 0) & 0xff;
 
-
+  /* Timestamp UI24 */
   GST_WRITE_UINT24_BE (data + 4, dts);
+
+  /* TimestampExtended UI8 */
   data[7] = (((guint) dts) >> 24) & 0xff;
 
+  /* StreamID UI24 */
   data[8] = data[9] = data[10] = 0;
 
   if (mux->video_pad == pad) {
+
+    /* FrameType UB[4] */
     if (buffer && GST_BUFFER_FLAG_IS_SET (buffer, GST_BUFFER_FLAG_DELTA_UNIT)) {
+      /* Inter frame */
       data[11] |= 2 << 4;
     } else {
+      /* Keyframe */
       data[11] |= 1 << 4;
     }
 
+    /* CodecID UB[4] */
     data[11] |= pad->codec & 0x0f;
 
     if (pad->codec == 7 || pad->codec == 12) {
+      guint32 compositiontime = 0;
+
+      /* AVCPacketType UI8 */
       if (is_codec_data) {
         data[12] = 0;
-        GST_WRITE_UINT24_BE (data + 13, 0);
       } else if (bsize == 0) {
         /* AVC/HEVC end of sequence */
         data[12] = 2;
-        GST_WRITE_UINT24_BE (data + 13, 0);
       } else {
         /* AVC/HEVC NALU */
         data[12] = 1;
-        GST_WRITE_UINT24_BE (data + 13, cts);
+        compositiontime = cts;
       }
+
+      /* CompositionTime SI24 (see above why we write UI24) */
+      GST_WRITE_UINT24_BE (data + 13, compositiontime);
+
+      /* Data UI8[n] */
       memcpy (data + 11 + 1 + 4, bdata, bsize);
     } else {
+      /* Data UI8[n] */
       memcpy (data + 11 + 1, bdata, bsize);
     }
   } else {

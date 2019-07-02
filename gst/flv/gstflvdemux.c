@@ -83,7 +83,7 @@ static GstStaticPadTemplate video_src_template =
         "video/x-flash-screen; "
         "video/x-vp6-flash; " "video/x-vp6-alpha; "
         "video/x-h264, stream-format=avc;"
-        "video/x-h265, stream-format=byte-stream; ")
+        "video/x-h265, stream-format=hvc1; ")
     );
 
 GST_DEBUG_CATEGORY_STATIC (flvdemux_debug);
